@@ -1,7 +1,7 @@
 # go-gorilla
 OpenTracing instrumentation for Gorilla framework (github.com/gorilla)
 
-# Usage
+## Usage
 
 Here is example for this repo.
 ```
