@@ -5,9 +5,9 @@ package gorilla
 import (
 	"net/http"
 
+	muxcontext "github.com/gorilla/context"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	muxcontext "github.com/gorilla/context"
 )
 
 const defaultComponentName = "github.com/gorilla/mux"
@@ -107,7 +107,7 @@ func Middleware(tr opentracing.Tracer, h http.Handler, options ...MWOption) http
 
 		//set mux context data
 		for key, value := range gorillaCtx {
-			muxcontext.Set(r,key,value)
+			muxcontext.Set(r, key, value)
 		}
 
 		h.ServeHTTP(w, r)
