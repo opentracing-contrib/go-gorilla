@@ -7,10 +7,9 @@ import (
 	"time"
 
     "github.com/gorilla/mux"
-    "github.com/opentracing-contrib/go-gorilla/gorilla"
-    "github.com/opentracing/opentracing-go"
-
+	"github.com/opentracing/opentracing-go"
 	"github.com/uber/jaeger-client-go/config"
+    "github.com/opentracing-contrib/go-gorilla/gorilla"
 )
 
 func NewServeMux(tracer opentracing.Tracer) *TracedServeMux {
