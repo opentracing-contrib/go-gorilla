@@ -10,9 +10,7 @@ import (
     "github.com/opentracing-contrib/go-gorilla/gorilla"
     "github.com/opentracing/opentracing-go"
 
-	"github.com/uber/jaeger-client-go/rpcmetrics"
 	"github.com/uber/jaeger-client-go/config"
-	jprom "github.com/uber/jaeger-lib/metrics/prometheus"
 )
 
 func NewServeMux(tracer opentracing.Tracer) *TracedServeMux {
@@ -62,10 +60,8 @@ func ExampleMiddleware() {
 			LocalAgentHostPort:  jaegerHostPort,
 		},
 	}
-	metricsFactory := jprom.New()
-	tracer, _, err:= cfg.New(
+	tracer, _, err := cfg.New(
 		"ExampleMiddleware",
-		config.Observer(rpcmetrics.NewObserver(metricsFactory, rpcmetrics.DefaultNameNormalizer)),
 	)
 
 	if err != nil {
