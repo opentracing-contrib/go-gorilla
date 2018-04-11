@@ -10,6 +10,8 @@ import (
 	muxcontext "github.com/gorilla/context"
 )
 
+const defaultComponentName = "github.com/gorilla/mux"
+
 type statusCodeTracker struct {
 	http.ResponseWriter
 	status int
