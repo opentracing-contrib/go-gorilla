@@ -5,35 +5,38 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/mux"
+
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/mocktracer"
 )
 
 func TestOperationNameOption(t *testing.T) {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/root", func(w http.ResponseWriter, r *http.Request) {})
+	mr := mux.NewRouter()
+	mr.HandleFunc("/root", func(w http.ResponseWriter, r *http.Request) {})
 
 	fn := func(r *http.Request) string {
-		return "HTTP " + r.Method + ": /root"
+		return "HTTP/1.1 " + r.Method + " /root"
 	}
 
 	tests := []struct {
 		options []MWOption
 		opName  string
 	}{
-		{nil, "HTTP GET"},
-		{[]MWOption{OperationNameFunc(fn)}, "HTTP GET: /root"},
+		{nil, "HTTP/1.1 GET /root"},
+		{[]MWOption{OperationNameFunc(fn)}, "HTTP/1.1 GET /root"},
 	}
 
 	for _, tt := range tests {
 		testCase := tt
 		t.Run(testCase.opName, func(t *testing.T) {
 			tr := &mocktracer.MockTracer{}
-			mw := Middleware(tr, mux, testCase.options...)
-			srv := httptest.NewServer(mw)
+			mw := NewTracingMiddleware(tr, testCase.options...)
+			mr.Use(mw.With)
+			srv := httptest.NewServer(mr)
 			defer srv.Close()
 
-			_, err := http.Get(srv.URL)
+			_, err := http.Get(srv.URL + "/root")
 			if err != nil {
 				t.Fatalf("server returned error: %v", err)
 			}
@@ -51,37 +54,38 @@ func TestOperationNameOption(t *testing.T) {
 }
 
 func TestSpanObserverOption(t *testing.T) {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/root", func(w http.ResponseWriter, r *http.Request) {})
+	mr := mux.NewRouter()
+	mr.HandleFunc("/root", func(w http.ResponseWriter, r *http.Request) {})
 
 	opNamefn := func(r *http.Request) string {
-		return "HTTP " + r.Method + ": /root"
+		return "HTTP/1.1 " + r.Method + " /root"
 	}
 	spanObserverfn := func(sp opentracing.Span, r *http.Request) {
 		sp.SetTag("http.uri", r.URL.EscapedPath())
 	}
-	wantTags := map[string]interface{}{"http.uri": "/"}
+	wantTags := map[string]interface{}{"http.uri": "/root"}
 
 	tests := []struct {
 		options []MWOption
 		opName  string
 		Tags    map[string]interface{}
 	}{
-		{nil, "HTTP GET", nil},
-		{[]MWOption{OperationNameFunc(opNamefn)}, "HTTP GET: /root", nil},
-		{[]MWOption{MWSpanObserver(spanObserverfn)}, "HTTP GET", wantTags},
-		{[]MWOption{OperationNameFunc(opNamefn), MWSpanObserver(spanObserverfn)}, "HTTP GET: /root", wantTags},
+		{nil, "HTTP/1.1 GET /root", nil},
+		{[]MWOption{OperationNameFunc(opNamefn)}, "HTTP/1.1 GET /root", nil},
+		{[]MWOption{MWSpanObserver(spanObserverfn)}, "HTTP/1.1 GET /root", wantTags},
+		{[]MWOption{OperationNameFunc(opNamefn), MWSpanObserver(spanObserverfn)}, "HTTP/1.1 GET /root", wantTags},
 	}
 
 	for _, tt := range tests {
 		testCase := tt
 		t.Run(testCase.opName, func(t *testing.T) {
 			tr := &mocktracer.MockTracer{}
-			mw := Middleware(tr, mux, testCase.options...)
-			srv := httptest.NewServer(mw)
+			mw := NewTracingMiddleware(tr, testCase.options...)
+			mr.Use(mw.With)
+			srv := httptest.NewServer(mr)
 			defer srv.Close()
 
-			_, err := http.Get(srv.URL)
+			_, err := http.Get(srv.URL + "/root")
 			if err != nil {
 				t.Fatalf("server returned error: %v", err)
 			}

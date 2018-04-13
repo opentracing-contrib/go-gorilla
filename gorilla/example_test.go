@@ -11,7 +11,7 @@ import (
 	"github.com/uber/jaeger-client-go/config"
 )
 
-func ExampleMiddleware() {
+func ExampleTracingMiddleware() {
 	// http listen port
 	httpAddress := ":8800"
 
@@ -46,13 +46,9 @@ func ExampleMiddleware() {
 	r := mux.NewRouter()
 
 	pattern := "/v1/products/{productId}"
-	middleware := gorilla.Middleware(
-		tracer,
-		http.HandlerFunc(myHandler),
-		gorilla.OperationNameFunc(func(r *http.Request) string {
-			return "Gorilla HTTP " + r.Method + " " + pattern
-		}))
+	middleware := gorilla.NewTracingMiddleware(tracer)
 
-	r.Handle(pattern, middleware)
+	r.HandleFunc(pattern, myHandler)
+	r.Use(middleware.With)
 	log.Fatal(http.ListenAndServe(httpAddress, r))
 }
