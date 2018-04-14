@@ -1,4 +1,4 @@
-package gorilla_test
+package gorilla_test 
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/opentracing-contrib/go-gorilla/gorilla"
+	//"github.com/opentracing-contrib/go-stdlib/nethttp"
 	"github.com/uber/jaeger-client-go/config"
 )
 
@@ -36,7 +37,7 @@ func ExampleTracingMiddleware() {
 		},
 	}
 	tracer, _, err := cfg.New(
-		"ExampleMiddleware", //operationName
+		"ExampleTracingMiddleware", //service name
 	)
 
 	if err != nil {
@@ -46,9 +47,12 @@ func ExampleTracingMiddleware() {
 	r := mux.NewRouter()
 
 	pattern := "/v1/products/{productId}"
-	middleware := gorilla.NewTracingMiddleware(tracer)
+	
+	middleware := gorilla.Middleware(
+		tracer,
+		http.HandlerFunc(myHandler),
+	)
 
-	r.HandleFunc(pattern, myHandler)
-	r.Use(middleware.With)
+	r.Handle(pattern, middleware)
 	log.Fatal(http.ListenAndServe(httpAddress, r))
 }
