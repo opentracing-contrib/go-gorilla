@@ -43,6 +43,7 @@ func Middleware(tr opentracing.Tracer, h http.Handler, options ...nethttp.MWOpti
 	}
 	var opts []nethttp.MWOption
 	opts = append(opts,nethttp.OperationNameFunc(opNameFunc))
+	opts = append(opts, nethttp.MWComponentName(defaultComponentName))
 	opts = append(opts, options...)
 	return nethttp.Middleware(tr,h,opts...)
 }
