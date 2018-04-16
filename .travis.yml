@@ -6,6 +6,12 @@ go:
   - 1.9.x
   - tip
 
+before_script:
+  - cd $GOPATH/src/github.com/uber/jaeger-client-go/
+  - git submodule update --init --recursive
+  - make install
+  - rm -r $GOPATH/src/github.com/uber/jaeger-client-go/vendor/github.com/opentracing/opentracing-go
+  - cd $GOPATH/src/github.com/opentracing-contrib/go-gorilla
 script:
   - go test -v -cover -race ./...
 
