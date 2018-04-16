@@ -24,26 +24,18 @@ const defaultComponentName = "github.com/gorilla/mux"
 //   pattern := "/api/custerms/{id}"
 //   mw := gorilla.Middleware(
 //      tracer,
-//      nethttp.OperationNameFunc(func(r *http.Request) string {
-//	        return r.Proto + " " + r.Method + ":" + pattern
-//      }),
-//      nethttp.MWSpanObserver(func(sp opentracing.Span, r *http.Request) {
-//			sp.SetTag("http.uri", r.URL.EscapedPath())
-//		}),
+//      handler,
 //   )
 //   r := mux.NewRouter()
-//   r.HandleFunc(pattern, handler)
-//   r.Use(middleware.With)
+//   r.HandleFunc(pattern, mw)
 func Middleware(tr opentracing.Tracer, h http.Handler, options ...nethttp.MWOption) http.Handler {
 	opNameFunc := func(r *http.Request) string {
-		if tpl, err := mux.CurrentRoute(r).GetPathTemplate(); nil == err {
+		if tpl, err := mux.CurrentRoute(r).GetPathTemplate(); err == nil {
 			return r.Proto + " " + r.Method + " " + tpl
 		}
-		return r.Proto + " " + r.Method + " " + r.URL.Path 
+		return r.Proto + " " + r.Method
 	}
-	var opts []nethttp.MWOption
-	opts = append(opts,nethttp.OperationNameFunc(opNameFunc))
-	opts = append(opts, nethttp.MWComponentName(defaultComponentName))
+	var opts = []nethttp.MWOption{nethttp.OperationNameFunc(opNameFunc), nethttp.MWComponentName(defaultComponentName)}
 	opts = append(opts, options...)
-	return nethttp.Middleware(tr,h,opts...)
+	return nethttp.Middleware(tr, h, opts...)
 }

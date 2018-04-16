@@ -1,4 +1,4 @@
-package gorilla_test 
+package gorilla_test
 
 import (
 	"fmt"
@@ -47,7 +47,7 @@ func ExampleTracingMiddleware() {
 	r := mux.NewRouter()
 
 	pattern := "/v1/products/{productId}"
-	
+
 	middleware := gorilla.Middleware(
 		tracer,
 		http.HandlerFunc(myHandler),
