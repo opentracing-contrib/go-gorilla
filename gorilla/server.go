@@ -30,8 +30,10 @@ const defaultComponentName = "github.com/gorilla/mux"
 //   r.HandleFunc(pattern, mw)
 func Middleware(tr opentracing.Tracer, h http.Handler, options ...nethttp.MWOption) http.Handler {
 	opNameFunc := func(r *http.Request) string {
-		if tpl, err := mux.CurrentRoute(r).GetPathTemplate(); err == nil {
-			return r.Proto + " " + r.Method + " " + tpl
+		if route := mux.CurrentRoute(r); route != nil {
+			if tpl, err := route.GetPathTemplate(); err == nil {
+				return r.Proto + " " + r.Method + " " + tpl
+			}
 		}
 		return r.Proto + " " + r.Method
 	}
